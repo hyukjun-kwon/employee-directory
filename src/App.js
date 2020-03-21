@@ -5,14 +5,26 @@ import Update from "./components/Update/Update";
 import Edit from "./components/Edit/Edit";
 import Add from "./components/Add/Add";
 import NotFound from "./components/NotFound/NotFound";
-import employees from "./employees.json";
+import API from "./utils/API";
 
 class App extends Component {
   state = {
     currentTab: "Employees",
     currentEmployee: "",
-    employees
+    employees: []
   };
+
+  componentDidMount() {
+    this.getAllEmployee();
+  }
+
+  getAllEmployee = async () => {
+    API.findAll()
+    .then(res => this.setState({
+        employees: res.data
+      })
+    );
+  }
 
   handleTabChange = tab => {
     return this.setState({
@@ -20,59 +32,39 @@ class App extends Component {
     });
   };
 
-  handleEditRequest = id => {
-    this.setState({
+  handleEditRequest = async (id) => {
+    API.findEmployee(id)
+    .then(res => this.setState({
       currentTab: "Edit",
-      currentEmployee: this.state.employees.filter(employee => employee.id === id)[0]
-    })
+      currentEmployee: res.data
+    }));
   }
 
   addEmployee = employee => {
-    const newID = 1+ this.state.employees[this.state.employees.length - 1].id;    
-    let newEmployee = Object.assign({id:newID}, employee);
-
-    let Employees = this.state.employees;
-    Employees.push(newEmployee);
+    API.addEmployee(employee)
+    .then(res => this.getAllEmployee());
 
     this.setState({
       currentTab: "Update",
-      employees: Employees
     })
   }
 
   updateEmployee = employee => {
-    let newEmployees = this.state.employees;
-    const empLen = newEmployees.length;
-
-    for(let i=0; i < empLen; i++) {
-      if(newEmployees[i].id === employee.id) {
-        newEmployees[i] = employee;
-        break;
-      }
-    }
+    API.updateEmployee(employee)
+    .then(res => this.getAllEmployee());
     
     this.setState({
       currentTab: "Update",
-      currentEmployee: "",
-      employees: newEmployees
+      currentEmployee: ""
     });
   }
 
   removeEmployee = id => {
-    let newEmployees = this.state.employees;
-    const empLen = newEmployees.length;
-
-    for(let i=0; i < empLen; i++) {
-      if(newEmployees[i].id === id) {
-        newEmployees.splice(i, 1);
-        break;
-      }
-    }
+    API.removeEmployee(id)
+    .then(res => this.getAllEmployee());
     
     this.setState({
-      currentTab: "Update",
-      currentEmployee: "",
-      employees: newEmployees
+      currentTab: "Update"
     });
   }
 
